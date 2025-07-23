@@ -1,8 +1,12 @@
+(globalThis as any).packageName = '@clerk/nextjs';
+
 import type { Metadata } from "next";
 import { Inter, Montserrat, Lato } from "next/font/google";
-import { cn } from "@/lib/utils";
-import "./globals.css";
-import ConvexClientProvider from "./ConvexClientProvider";
+import "@packages/ui/globals.css";
+
+import { cn } from "@packages/ui/lib/utils";
+
+import Providers  from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
@@ -19,9 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={cn(inter.className, montserrat.className, lato.className)}>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(inter.className, montserrat.className, lato.className, "font-sans antialiased")}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
