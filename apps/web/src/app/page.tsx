@@ -5,10 +5,12 @@ import CreatorFeaturesGrid from "@/components/blocks/features/creator-features-g
 import AudienceFeaturesGrid from "@/components/blocks/features/audience-features-grid";
 import ContentCreationProcess from "@/components/blocks/process/content-creation-process";
 import SimpleCenteredWithGradient from "@/components/blocks/ctas/simple-centered-with-gradient";
+import CreatePostNav from "@/components/create-post-nav";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between bg-background">
+      <CreatePostNav />
       <Hero />
       <ContentCreationProcess />
       <CreatorFeaturesGrid />
