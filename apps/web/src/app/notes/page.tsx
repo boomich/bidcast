@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+import Header from "@/components/archived/Header";
 import Notes from "@/components/notes/Notes";
 
 export default function Home() {

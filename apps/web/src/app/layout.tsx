@@ -1,20 +1,25 @@
-(globalThis as any).packageName = '@clerk/nextjs';
+(globalThis as any).packageName = "@clerk/nextjs";
+
+import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 
 import type { Metadata } from "next";
-import { Inter, Montserrat, Lato } from "next/font/google";
+
 import "@packages/ui/globals.css";
 
 import { cn } from "@packages/ui/lib/utils";
 
-import Providers  from "@/components/providers";
+import Providers from "@/components/providers";
 
-const inter = Inter({ subsets: ["latin"] });
-const montserrat = Montserrat({ subsets: ["latin"] });
-const lato = Lato({ weight: "400", subsets: ["latin"] });
+const InterFont = Inter({ subsets: ["latin"] });
+
+const SatoshiFont = localFont({
+  src: "../../public/fonts/Satoshi-Variable.woff2",
+});
 
 export const metadata: Metadata = {
-  title: "Notes App",
-  description: "This is an app to take notes.",
+  title: "Bidcast",
+  description: "Empower your audience to drive your content decisions.",
 };
 
 export default function RootLayout({
@@ -24,10 +29,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.className, montserrat.className, lato.className, "font-sans antialiased")}>
-        <Providers>
-          {children}
-        </Providers>
+      <body
+        className={cn(
+          InterFont.className,
+          SatoshiFont.className,
+          "font-sans antialiased",
+        )}
+      >
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
