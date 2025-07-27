@@ -8,11 +8,10 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
-  SignInButton,
-  SignUpButton,
 } from "@clerk/nextjs";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { BackgroundDotsMaskedVertical } from "@/components/blocks/backgrounds/background-with-dots-masked-vertical";
 
@@ -29,7 +28,6 @@ import {
 } from "@/components/blocks/navbar";
 
 import Button from "@/components/ui/bc-button";
-import Link from "next/link";
 
 const Hero = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -146,16 +144,16 @@ const HeroContent = () => {
         className="flex items-center justify-center flex-col sm:flex-row gap-4 relative z-10 mt-10 px-8"
       >
         <SignedOut>
-          <SignUpButton>
+          <Link href="/sign-up">
             <Button className="w-full sm:w-auto" variant="primary">
               Get started. Make content happen.
             </Button>
-          </SignUpButton>
-          <SignInButton>
+          </Link>
+          <Link href="/sign-in">
             <Button className="w-full sm:w-auto" variant="simple">
               Sign In
             </Button>
-          </SignInButton>
+          </Link>
         </SignedOut>
         <SignedIn>
           <Link href="/feed">

@@ -154,3 +154,19 @@
     color: var(--color-secondary-foreground);
   }
 }
+
+/* Custom animations for auth pages */
+@keyframes pulse-delayed {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}

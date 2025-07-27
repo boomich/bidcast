@@ -6,8 +6,6 @@ import {
   SignedIn,
   SignedOut,
   UserButton,
-  SignInButton,
-  SignUpButton,
 } from "@clerk/nextjs";
 
 import Button from "@/components/ui/bc-button";
@@ -33,16 +31,16 @@ export default function SimpleCenteredWithGradient() {
             className="flex items-center justify-center flex-col sm:flex-row gap-4 relative z-10 mt-10 px-8"
           >
             <SignedOut>
-              <SignUpButton>
+              <Link href="/sign-up">
                 <Button className="w-full sm:w-auto" variant="primary">
                   Get started. Make content happen.
                 </Button>
-              </SignUpButton>
-              <SignInButton>
+              </Link>
+              <Link href="/sign-in">
                 <Button className="w-full sm:w-auto" variant="simple">
                   Sign In
                 </Button>
-              </SignInButton>
+              </Link>
             </SignedOut>
             <SignedIn>
               <Link href="/feed">
