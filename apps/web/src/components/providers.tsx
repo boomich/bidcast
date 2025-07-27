@@ -1,21 +1,27 @@
-"use client";
+"use client"
 
-import { ReactNode } from "react";
+import * as React from "react"
+
 import { ConvexReactClient } from "convex/react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
-import { ErrorBoundary } from "./ErrorBoundary";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+
+import { ErrorBoundary } from "@/app/ErrorBoundary";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export default function ConvexClientProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     // NOTE: Once you get Clerk working you can remove this error boundary
     <ErrorBoundary>
+      <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      enableColorScheme
+    >
       <ClerkProvider
         publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       >
@@ -23,6 +29,7 @@ export default function ConvexClientProvider({
           {children}
         </ConvexProviderWithClerk>
       </ClerkProvider>
+      </NextThemesProvider>
     </ErrorBoundary>
   );
 }

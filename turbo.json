@@ -4,6 +4,7 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "dependsOn": ["^build"]
     },
@@ -11,7 +12,9 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
     "clean": {
       "cache": false
     }

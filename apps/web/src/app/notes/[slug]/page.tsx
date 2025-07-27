@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+import Header from "@/components/archived/Header";
 import NoteDetails from "@/components/notes/NoteDetails";
 import { Id } from "@packages/backend/convex/_generated/dataModel";
 
