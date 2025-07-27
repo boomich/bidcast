@@ -1,6 +1,10 @@
 "use server";
 
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
+import { api } from "@packages/backend/convex/_generated/api";
+import { ConvexHttpClient } from "convex/browser";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export const completeOnboarding = async (formData: FormData) => {
   const { userId } = await auth();
@@ -12,20 +16,69 @@ export const completeOnboarding = async (formData: FormData) => {
   const client = await clerkClient();
 
   try {
-    const res = await client.users.updateUser(userId, {
-      // Keep onboardingComplete in publicMetadata for middleware check
+    const applicationName = formData.get("applicationName") as string;
+    const applicationType = formData.get("applicationType") as string;
+    const activeYouTubeChannelId = formData.get("activeYouTubeChannelId") as string;
+    const youtubeChannelsData = formData.get("youtubeChannelsData") as string;
+
+    // Parse YouTube channels data if available
+    let channels = [];
+    if (youtubeChannelsData) {
+      try {
+        const parsedData = JSON.parse(youtubeChannelsData);
+        if (parsedData.success && parsedData.channels) {
+          channels = parsedData.channels.map((channel: any) => ({
+            channelId: channel.id,
+            title: channel.title,
+            description: channel.description || "",
+            customUrl: channel.customUrl,
+            publishedAt: channel.publishedAt,
+            thumbnails: channel.thumbnails,
+            country: channel.country,
+            defaultLanguage: channel.defaultLanguage,
+            statistics: channel.statistics,
+            branding: channel.branding,
+            uploadsPlaylistId: channel.uploadsPlaylistId,
+            isActive: channel.id === activeYouTubeChannelId,
+          }));
+        }
+      } catch (parseError) {
+        console.error("Error parsing YouTube channels data:", parseError);
+      }
+    }
+
+    // Save to Convex
+    await convex.mutation(api.userProfiles.upsertUserProfile, {
+      userId,
+      applicationName,
+      applicationType,
+      activeYouTubeChannelId,
+      onboardingComplete: true,
+    });
+
+    // Save YouTube channels to Convex if available
+    if (channels.length > 0) {
+      await convex.mutation(api.userProfiles.saveYouTubeChannels, {
+        userId,
+        channels,
+      });
+    }
+
+    // Update Clerk for middleware compatibility
+    await client.users.updateUser(userId, {
       publicMetadata: {
         onboardingComplete: true,
       },
-      // Store sensitive data in privateMetadata
       privateMetadata: {
-        applicationName: formData.get("applicationName"),
-        applicationType: formData.get("applicationType"),
-        activeYouTubeChannelId: formData.get("activeYouTubeChannelId"),
+        applicationName,
+        applicationType,
+        activeYouTubeChannelId,
       },
     });
+
     return { message: "Onboarding completed successfully" };
   } catch (err) {
+    console.error("Error completing onboarding:", err);
     return { error: "There was an error updating the user metadata." };
   }
 };
@@ -37,19 +90,73 @@ export const setActiveYouTubeChannel = async (channelId: string) => {
     return { error: "No Logged In User" };
   }
 
-  const client = await clerkClient();
+  try {
+    // Update in Convex
+    const result = await convex.mutation(api.userProfiles.setActiveYouTubeChannel, {
+      userId,
+      channelId,
+    });
+
+    if (result.success) {
+      // Also update Clerk for backward compatibility
+      const client = await clerkClient();
+      const user = await client.users.getUser(userId);
+      await client.users.updateUser(userId, {
+        privateMetadata: {
+          ...user.privateMetadata,
+          activeYouTubeChannelId: channelId,
+        },
+      });
+
+      return { success: true, activeChannelId: channelId };
+    } else {
+      return { error: result.error || "Failed to update active channel" };
+    }
+  } catch (err) {
+    console.error("Error setting active YouTube channel:", err);
+    return { error: "There was an error updating the active channel." };
+  }
+};
+
+// New function to get user's YouTube channels from Convex
+export const getUserYouTubeChannelsFromConvex = async () => {
+  const { userId } = await auth();
+  if (!userId) {
+    return { error: "No Logged In User" };
+  }
 
   try {
-    const user = await client.users.getUser(userId);
-    const res = await client.users.updateUser(userId, {
-      privateMetadata: {
-        ...user.privateMetadata,
-        activeYouTubeChannelId: channelId,
-      },
+    const channels = await convex.query(api.userProfiles.getUserYouTubeChannels, {
+      userId,
     });
-    return { success: true, activeChannelId: channelId };
+    
+    return { success: true, channels };
   } catch (err) {
-    return { error: "There was an error updating the active channel." };
+    console.error("Error getting user YouTube channels:", err);
+    return { error: "Failed to get YouTube channels" };
+  }
+};
+
+// New function to get active YouTube channel from Convex
+export const getActiveYouTubeChannelFromConvex = async () => {
+  const { userId } = await auth();
+  if (!userId) {
+    return { error: "No Logged In User" };
+  }
+
+  try {
+    const channel = await convex.query(api.userProfiles.getActiveYouTubeChannel, {
+      userId,
+    });
+    
+    if (channel) {
+      return { success: true, channel };
+    } else {
+      return { error: "No active channel found" };
+    }
+  } catch (err) {
+    console.error("Error getting active YouTube channel:", err);
+    return { error: "Failed to get active YouTube channel" };
   }
 };
 
