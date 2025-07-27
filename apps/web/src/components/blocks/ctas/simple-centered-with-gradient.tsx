@@ -2,7 +2,16 @@
 
 import { motion } from "motion/react";
 
-import BidcastButton from "@/components/ui/bc-button";
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+  SignUpButton,
+} from "@clerk/nextjs";
+
+import Button from "@/components/ui/bc-button";
+import Link from "next/link";
 
 export default function SimpleCenteredWithGradient() {
   return (
@@ -21,14 +30,27 @@ export default function SimpleCenteredWithGradient() {
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ ease: "easeOut", duration: 0.5, delay: 0.4 }}
-            className="flex items-center justify-center flex-col sm:flex-row gap-4 relative z-10 mt-15 px-2"
+            className="flex items-center justify-center flex-col sm:flex-row gap-4 relative z-10 mt-10 px-8"
           >
-            <BidcastButton className="w-full sm:w-auto" variant="primary">
-              Start as a Content Creator
-            </BidcastButton>
-            <BidcastButton className="w-full sm:w-auto" variant="simple">
-              Start as a Fan
-            </BidcastButton>
+            <SignedOut>
+              <SignUpButton>
+                <Button className="w-full sm:w-auto" variant="primary">
+                  Get started. Make content happen.
+                </Button>
+              </SignUpButton>
+              <SignInButton>
+                <Button className="w-full sm:w-auto" variant="simple">
+                  Sign In
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/feed">
+                <Button className="w-full sm:w-auto" variant="primary">
+                  Go to campaign feed
+                </Button>
+              </Link>
+            </SignedIn>
           </motion.div>
 
           <p className="mt-4 text-xs text-muted-foreground">

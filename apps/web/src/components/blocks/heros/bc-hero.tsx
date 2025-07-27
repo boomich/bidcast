@@ -29,6 +29,7 @@ import {
 } from "@/components/blocks/navbar";
 
 import Button from "@/components/ui/bc-button";
+import Link from "next/link";
 
 const Hero = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -156,6 +157,13 @@ const HeroContent = () => {
             </Button>
           </SignInButton>
         </SignedOut>
+        <SignedIn>
+          <Link href="/feed">
+            <Button className="w-full sm:w-auto" variant="primary">
+              Go to campaign feed
+            </Button>
+          </Link>
+        </SignedIn>
       </motion.div>
     </div>
   );

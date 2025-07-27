@@ -4,6 +4,7 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "env": ["CLERK_SECRET_KEY", "CONVEX_DEPLOY_KEY"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "dependsOn": ["^build"]
