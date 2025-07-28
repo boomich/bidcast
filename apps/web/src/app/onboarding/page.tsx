@@ -7,6 +7,7 @@ import Image from "next/image";
 
 import { Card } from "@/components/ui/card";
 import { fetchMutation } from "convex/nextjs";
+import { getAuthToken } from "@/lib/auth";
 import { api } from "@packages/backend/convex/_generated/api";
 
 import Heading from "@/components/ui/bc-heading";
@@ -40,12 +41,21 @@ export default async function OnboardingPage() {
 
   const OauthChannel = (await response.json()).items[0];
 
-  await fetchMutation(api.users.storeUser, {});
-  await fetchMutation(api.channels.createChannel, {
-    youtubeChannelId: OauthChannel.id,
-    channelName: OauthChannel.snippet.title,
-    channelUrl: OauthChannel.snippet.customUrl,
-  });
+  // Retrieve a Clerk-issued JWT with the "convex" template so we can run
+  // authenticated Convex mutations from this Server Component.
+  const convexToken = await getAuthToken();
+
+  await fetchMutation(api.users.storeUser, {}, { token: convexToken });
+
+  await fetchMutation(
+    api.channels.createChannel,
+    {
+      youtubeChannelId: OauthChannel.id,
+      channelName: OauthChannel.snippet.title,
+      channelUrl: OauthChannel.snippet.customUrl,
+    },
+    { token: convexToken },
+  );
 
   return (
     <>
