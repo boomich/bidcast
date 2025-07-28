@@ -8,4 +8,16 @@ export default defineSchema({
     content: v.string(),
     summary: v.optional(v.string()),
   }),
+
+  users: defineTable({
+    name: v.string(),
+    tokenIdentifier: v.string(),
+  }).index("by_token", ["tokenIdentifier"]),
+
+  youtubeChannels: defineTable({
+    user: v.id("users"),
+    channelName: v.string(),
+    channelUrl: v.string(),
+    youtubeChannelId: v.string(),
+  }),
 });
