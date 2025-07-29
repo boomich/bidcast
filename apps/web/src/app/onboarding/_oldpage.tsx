@@ -60,7 +60,7 @@ export default function OnboardingComponent() {
       formData.append("activeYouTubeChannelId", selectedChannelId);
     }
 
-    const res = await completeOnboarding(formData);
+    const res = await completeOnboarding();
     if (res?.message) {
       // Reloads the user's data from the Clerk API
       await user?.reload();
