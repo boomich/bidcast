@@ -28,6 +28,8 @@ export default defineSchema({
     deadline: v.number(), // Unix epoch millis
     fundedAmount: v.number(),
     status: v.string(), // "open" | "succeeded" | "failed"
+    image: v.optional(v.string()),
+    updatedAt: v.optional(v.number()),
   }).index("by_creator", ["creatorId"]),
 
   Pledges: defineTable({
