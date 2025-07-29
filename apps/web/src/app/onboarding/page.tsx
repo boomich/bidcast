@@ -5,15 +5,14 @@ import { currentUser, clerkClient } from "@clerk/nextjs/server";
 
 import Image from "next/image";
 
-import { Card } from "@/components/ui/card";
+import { Card, Separator } from "@/components/ui";
 import { fetchMutation } from "convex/nextjs";
 import { getAuthToken } from "@/lib/auth";
 import { api } from "@packages/backend/convex/_generated/api";
-import { Separator } from "@packages/ui/components/separator";
 import { SimpleFooterWithFourGrids } from "@/components/blocks/footers/simple-footer-with-four-grids";
 
 import Heading from "@/components/ui/bc-heading";
-import Navbar from "@/components/blocks/bc-navbar";
+import { Navigation } from "@/components/layout";
 import BidcastButton from "@/components/ui/bc-button";
 import CompleteOnboardingButton from "./_CompleteOnboarding";
 
@@ -69,7 +68,7 @@ export default async function OnboardingPage() {
 
   return (
     <>
-      <Navbar />
+      <Navigation />
       <div className="container max-md:px-7 mx-auto flex flex-col gap-8 items-center pb-18 min-h-screen">
         <Heading
           className="my-24 max-md:mt-10 max-md:mb-9 text-center"
@@ -98,43 +97,42 @@ export default async function OnboardingPage() {
                     {OauthChannel.snippet.title}
                   </h4>
                   <div className="flex justify-between gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      {OauthChannel.snippet.customUrl}
-                    </p>
-                  </div>
-                  <div className="flex justify-between gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      {OauthChannel.statistics.videoCount} videos •{" "}
-                      {OauthChannel.statistics.subscriberCount} subscribers •{" "}
-                      {OauthChannel.statistics.viewCount} views
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <Youtube className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-muted-foreground">
+                        {OauthChannel.statistics.subscriberCount} subscribers
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-muted-foreground">
+                        {OauthChannel.statistics.videoCount} videos
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <hr className="mb-2" />
-              <div className="flex flex-col justify-between gap-2">
-                <ConnectYouTubeChannelButton asChild>
-                  <BidcastButton>Add another channel</BidcastButton>
-                </ConnectYouTubeChannelButton>
-                <CompleteOnboardingButton />
               </div>
             </Card>
           </div>
 
-          <Separator
-            orientation="horizontal"
-            className="block md:hidden my-4"
-          />
-
-          <OtherChannels except={OauthChannel.id} />
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl justify-center font-bold flex items-baseline gap-2">
+              Connect more channels
+            </h2>
+            <OtherChannels except={OauthChannel.id} />
+          </div>
         </div>
-        {/* <div className="text-sm max-w-3xl border-2 text-secondary">
-          <pre className="flex flex-col gap-2">
-            <span className="text-sm flex-wrap wrap-anywhere whitespace-break-spaces text-secondary">
-              {JSON.stringify(user, null, 2)}
-            </span>
-          </pre>
-        </div> */}
+
+        <Separator />
+
+        <div className="flex flex-col gap-4">
+          <h2 className="text-2xl justify-center font-bold flex items-baseline gap-2">
+            Next steps
+          </h2>
+          <div className="flex flex-col md:flex-row gap-4">
+            <ConnectYouTubeChannelButton />
+            <CompleteOnboardingButton />
+          </div>
+        </div>
       </div>
       <SimpleFooterWithFourGrids />
     </>
