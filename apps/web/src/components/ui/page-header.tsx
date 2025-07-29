@@ -24,7 +24,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "border-b border-border bg-gradient-to-r from-blue-50/60 to-purple-50/60 backdrop-blur-sm",
+        "border-b border-border bg-background/95 backdrop-blur-sm",
         sticky && "sticky top-0 z-10",
         className
       )}
@@ -32,9 +32,7 @@ export function PageHeader({
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-1 text-foreground">
-              {title}
-            </h1>
+            <h1 className="text-2xl font-bold mb-1">{title}</h1>
             {subtitle && (
               <p className="text-muted-foreground">{subtitle}</p>
             )}

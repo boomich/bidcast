@@ -6,7 +6,6 @@ import { Navigation } from "@/components/layout";
 import { PageHeader, SearchFilters, CampaignCard } from "@/components/ui";
 import { useCampaigns } from "@/hooks";
 import { CampaignFilters } from "@/types";
-import { useRouter } from "next/navigation";
 
 export default function FeedPage() {
   const {
@@ -17,14 +16,14 @@ export default function FeedPage() {
     setFilters,
   } = useCampaigns();
 
-  const router = useRouter();
-
   const handleCreateCampaign = () => {
-    router.push("/campaigns/new");
+    // TODO: Implement campaign creation flow
+    console.log("Create campaign clicked");
   };
 
   const handleBackCampaign = (campaignId: string) => {
-    router.push(`/campaigns/${campaignId}`);
+    // TODO: Implement campaign backing flow
+    console.log("Back campaign clicked:", campaignId);
   };
 
   const handleFiltersChange = (newFilters: CampaignFilters) => {
