@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+import Navbar from "@/components/blocks/bc-navbar";
+
 interface Campaign {
   id: string;
   title: string;
@@ -241,6 +243,7 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       {/* Header */}
       <div className="border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
         <div className="container mx-auto px-4 py-6">

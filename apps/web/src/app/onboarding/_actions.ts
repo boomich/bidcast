@@ -2,12 +2,9 @@
 
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 
-export const completeOnboarding = async (formData: FormData) => {
+export const completeOnboarding = async () => {
   const { userId } = await auth();
-
-  if (!userId) {
-    return { message: "No Logged In User" };
-  }
+  if (!userId) return { message: "No Logged In User" };
 
   const client = await clerkClient();
 
@@ -17,14 +14,8 @@ export const completeOnboarding = async (formData: FormData) => {
       publicMetadata: {
         onboardingComplete: true,
       },
-      // Store sensitive data in privateMetadata
-      privateMetadata: {
-        applicationName: formData.get("applicationName"),
-        applicationType: formData.get("applicationType"),
-        activeYouTubeChannelId: formData.get("activeYouTubeChannelId"),
-      },
     });
-    return { message: "Onboarding completed successfully" };
+    return { success: true };
   } catch (err) {
     return { error: "There was an error updating the user metadata." };
   }

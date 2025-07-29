@@ -1,50 +1,102 @@
 "use client"; // This directive makes it a Client Component
 
-import { useUser } from "@clerk/nextjs";
-import { OAuthStrategy } from "@clerk/types";
-import { useRouter } from "next/navigation"; // Use next/navigation for client-side routing
+import React from "react";
 
-export function ConnectYouTubeChannelButton() {
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { OAuthStrategy } from "@clerk/types";
+
+interface ConnectYouTubeChannelButtonProps {
+  onConnect?: () => void;
+  onError?: (error: Error) => void;
+  asChild?: boolean;
+  children?: React.ReactNode;
+}
+
+export default function ConnectYouTubeChannelButton({
+  asChild,
+  children,
+  onError,
+  onConnect,
+}: ConnectYouTubeChannelButtonProps) {
   const { user } = useUser();
   const router = useRouter();
 
-  const connectNewChannel = async () => {
+  const connectNewChannelOrReauthorize = async () => {
     if (!user) {
       console.warn("User not loaded or not signed in.");
       return;
     }
 
-    try {
-      // Initiate a new OAuth flow for Google.
-      // The user will be redirected to Google's consent screen.
-      // `redirectUrl` is the URL the OAuth provider (Google) redirects back to.
-      // This should be your Clerk OAuth callback route.
-      const externalAccount = await user.createExternalAccount({
-        strategy: "oauth_google" as OAuthStrategy,
-        redirectUrl: `${window.location.origin}/oauth-callback`, // This is the only redirect URL for createExternalAccount
-        // 'redirectUrlComplete' is not a valid parameter here.
-        // The *final* redirect after Clerk processes the OAuth will be handled by:
-        // 1. The <AuthenticateWithRedirectCallback /> component on /oauth-callback,
-        //    via its `afterSignInUrl`/`afterSignUpUrl` props, or
-        // 2. Clerk environment variables (recommended), like CLERK_AFTER_SIGN_IN_URL/CLERK_AFTER_SIGN_UP_URL,
-        //    or CLERK_SIGN_IN_FORCE_REDIRECT_URL/CLERK_SIGN_UP_FORCE_REDIRECT_URL
-      });
+    const googleAccount = user.externalAccounts.find(
+      (ea) => ea.provider === "google",
+    );
 
-      // This is still correct: Redirect the user to Google for authorization
-      if (externalAccount.verification?.externalVerificationRedirectURL) {
-        router.push(
-          externalAccount.verification.externalVerificationRedirectURL.toString(),
+    if (!googleAccount) {
+      // If no Google account is connected,
+      // initiate the first connection (original createExternalAccount logic)
+      try {
+        const externalAccount = await user.createExternalAccount({
+          strategy: "oauth_google" as OAuthStrategy,
+          redirectUrl: `${window.location.origin}/oauth-callback`,
+        });
+        if (externalAccount.verification?.externalVerificationRedirectURL) {
+          router.push(
+            externalAccount.verification.externalVerificationRedirectURL.toString(),
+          );
+        }
+      } catch (error) {
+        console.error("Error connecting first Google account:", error);
+        alert(`Failed to connect Google account. Please try again. ${error}`);
+      }
+    } else {
+      // If a Google account is already connected, try to reauthorize it.
+      // This should trigger Google's consent screen again,
+      // allowing the user to pick a different YouTube identity (Brand Account).
+      try {
+        const reauthorizedAccount = await googleAccount.reauthorize({
+          redirectUrl: `${window.location.origin}/oauth-callback`,
+          // Add any additional scopes if needed for brand accounts, though
+          // 'youtube.readonly' should generally cover it.
+          // scopes: ['https://www.googleapis.com/auth/youtube.readonly'],
+        });
+
+        if (reauthorizedAccount.verification?.externalVerificationRedirectURL) {
+          router.push(
+            reauthorizedAccount.verification.externalVerificationRedirectURL.toString(),
+          );
+        } else {
+          // This path might be hit if reauthorization occurs without a redirect,
+          // or if the token is simply refreshed.
+          console.log(
+            "Google account reauthorized without redirect. Refreshing channels.",
+          );
+          // You might want to force a page refresh here or trigger a re-fetch
+          // router.refresh(); // For Next.js App Router
+        }
+      } catch (error) {
+        console.error(
+          "Error reauthorizing Google account for new YouTube channel:",
+          error,
+        );
+        // The user might have declined, or there's another issue.
+        // Check for specific error codes if available.
+        alert(
+          "Failed to connect another YouTube channel. Make sure you select a different YouTube identity on Google's screen, or that you have another Brand Account.",
         );
       }
-    } catch (error) {
-      console.error("Error connecting new YouTube channel:", error);
-      // Handle error (e.g., show a toast message to the user)
     }
   };
 
+  if (asChild) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      onClick: connectNewChannelOrReauthorize,
+    });
+  }
+
   return (
     <button
-      onClick={connectNewChannel}
+      onClick={connectNewChannelOrReauthorize}
       className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
     >
       Connect Another YouTube Channel

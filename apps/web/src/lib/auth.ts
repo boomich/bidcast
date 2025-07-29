@@ -4,6 +4,6 @@ export async function getAuthToken(): Promise<string | undefined> {
 
   // Clerk recommends creating a JWT template named "convex" for Convex integration.
   // https://docs.convex.dev/client/react/nextjs/server-rendering#server-side-authentication
-  const token = await auth().getToken({ template: "convex" });
+  const token = await (await auth()).getToken({ template: "convex" });
   return token ?? undefined;
 }

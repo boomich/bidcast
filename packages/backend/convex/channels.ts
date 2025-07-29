@@ -1,38 +1,70 @@
 import { v } from "convex/values";
-import { Auth } from "convex/server";
 
-import { mutation } from "./_generated/server";
-
-export const getUserId = async (ctx: { auth: Auth }) => {
-  return (await ctx.auth.getUserIdentity())?.subject;
-};
+import { mutation, query } from "./_generated/server";
 
 export const createChannel = mutation({
   args: {
-    youtubeChannelId: v.string(),
-    channelName: v.string(),
+    clerkUserId: v.string(),
+    clerkExternalAccountId: v.string(),
+    channelId: v.string(),
+    channelTitle: v.string(),
     channelUrl: v.string(),
+    channelThumbnail: v.string(),
   },
-  handler: async (ctx, { youtubeChannelId, channelName, channelUrl }) => {
+  handler: async (
+    ctx,
+    {
+      clerkUserId,
+      clerkExternalAccountId,
+      channelId,
+      channelTitle,
+      channelUrl,
+      channelThumbnail,
+    },
+  ) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Unauthenticated call to mutation");
-    }
+    if (!identity) throw new Error("Unauthenticated call to mutation");
+
     const user = await ctx.db
-      .query("users")
+      .query("Users")
       .withIndex("by_token", (q) =>
         q.eq("tokenIdentifier", identity.tokenIdentifier),
       )
       .unique();
-    if (!user) {
-      throw new Error("Unauthenticated call to mutation");
-    }
-    const channelId = await ctx.db.insert("youtubeChannels", {
-      user: user._id,
-      youtubeChannelId,
-      channelName,
+    if (!user) throw new Error("No user found! Please run onboarding first.");
+
+    const existingChannel = await ctx.db
+      .query("UserYoutubeChannels")
+      .withIndex("by_channel_id", (q) => q.eq("channelId", channelId))
+      .first();
+
+    if (existingChannel !== null) return existingChannel;
+
+    const ytChannelId = await ctx.db.insert("UserYoutubeChannels", {
+      clerkUserId,
+      clerkExternalAccountId,
+      channelId,
+      channelTitle,
       channelUrl,
+      channelThumbnail,
     });
-    return channelId;
+    return ytChannelId;
+  },
+});
+
+export const getChannels = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated call to mutation");
+
+    const clerkUserId = identity.subject;
+
+    const channels = await ctx.db
+      .query("UserYoutubeChannels")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", clerkUserId))
+      .collect();
+
+    return channels;
   },
 });
