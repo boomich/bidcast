@@ -24,25 +24,9 @@ export const canUserPledge = query({
     campaignId: v.id("Campaigns"),
   },
   handler: async (ctx, { campaignId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated call to query");
-
-    // Find User document
-    const user = await ctx.db
-      .query("Users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
-      .unique();
-    if (!user) throw new Error("User not found – onboarding incomplete.");
-
-    // Look for an existing pledge by this user for this campaign.
-    const existing = await ctx.db
-      .query("Pledges")
-      .withIndex("by_user_campaign", (q) =>
-        q.eq("userId", user._id).eq("campaignId", campaignId),
-      )
-      .first();
-
-    return existing === null; // true if user can pledge
+    const campaign = await ctx.db.get(campaignId);
+    if (!campaign) return false;
+    return campaign.status === "open";
   },
 });
 
@@ -70,14 +54,7 @@ export const createPledge = mutation({
     if (!campaign) throw new Error("Campaign not found");
     if (campaign.status !== "open") throw new Error("Campaign is not open for pledges");
 
-    // Prevent multiple pledges from same user.
-    const existing = await ctx.db
-      .query("Pledges")
-      .withIndex("by_user_campaign", (q) =>
-        q.eq("userId", user._id).eq("campaignId", campaignId),
-      )
-      .first();
-    if (existing) throw new Error("User has already pledged to this campaign");
+    // Multiple pledges per user allowed – no duplication check.
 
     // Determine available store credit.
     let creditDoc = await ctx.db
@@ -104,7 +81,7 @@ export const createPledge = mutation({
       // For now we simply assume payment succeeds.
     }
 
-    // Insert pledge.
+    // Insert pledge (multiple pledges per user supported).
     const pledgeId = await ctx.db.insert("Pledges", {
       userId: user._id as Id<"Users">,
       campaignId,
@@ -114,9 +91,16 @@ export const createPledge = mutation({
       eligibleForPerks: false,
     });
 
-    // Increment campaign fundedAmount (overfunding allowed).
+    // Recalculate total funded amount to avoid race conditions.
+    const pledgesForCampaign = await ctx.db
+      .query("Pledges")
+      .withIndex("by_campaign", (q) => q.eq("campaignId", campaignId))
+      .collect();
+
+    const totalFunded = pledgesForCampaign.reduce((sum, p) => sum + p.amount, 0);
+
     await ctx.db.patch(campaignId, {
-      fundedAmount: campaign.fundedAmount + amount,
+      fundedAmount: totalFunded,
     });
 
     return {
@@ -144,16 +128,18 @@ export const finalizeCampaign = mutation({
       throw new Error("Cannot finalize before campaign deadline");
     }
 
-    const succeeded = campaign.fundedAmount >= campaign.goalAmount;
-
-    // Fetch all pledges for this campaign.
+    // Recompute funded total from pledges to ensure accuracy.
     const pledges = await ctx.db
       .query("Pledges")
       .withIndex("by_campaign", (q) => q.eq("campaignId", campaignId))
       .collect();
 
+    const fundedTotal = pledges.reduce((sum, p) => sum + p.amount, 0);
+
+    const succeeded = fundedTotal >= campaign.goalAmount;
+
     if (succeeded) {
-      await ctx.db.patch(campaignId, { status: "succeeded" });
+      await ctx.db.patch(campaignId, { status: "succeeded", fundedAmount: fundedTotal });
 
       // Credit creator with total funds (simulated).
       const creatorId = campaign.creatorId as Id<"Users">;
@@ -180,7 +166,7 @@ export const finalizeCampaign = mutation({
     }
 
     // Otherwise failed -------------------------------------------------------
-    await ctx.db.patch(campaignId, { status: "failed" });
+    await ctx.db.patch(campaignId, { status: "failed", fundedAmount: fundedTotal });
 
     // Refund all pledges as store credit.
     for (const pledge of pledges) {
@@ -227,15 +213,18 @@ export const requestRefund = mutation({
     if (!campaign) throw new Error("Campaign not found");
     if (campaign.status !== "failed") throw new Error("Refunds allowed only on failed campaigns");
 
-    const pledge = await ctx.db
+    // Collect all pledges for this campaign & user.
+    const pledges = await ctx.db
       .query("Pledges")
       .withIndex("by_user_campaign", (q) =>
         q.eq("userId", user._id).eq("campaignId", campaignId),
       )
-      .unique();
+      .collect();
 
-    if (!pledge) throw new Error("No pledge from user to refund");
-    if (pledge.refunded !== true) throw new Error("Pledge has not been converted to store credit yet");
+    if (pledges.length === 0) throw new Error("No pledges from user to refund");
+
+    const refundable = pledges.reduce((sum, p) => sum + (p.refunded ? p.amount : 0), 0);
+    if (refundable === 0) throw new Error("Pledges not yet converted to store credit");
 
     // Withdraw store credit (simulate external payout)
     let credit = await ctx.db
@@ -243,13 +232,13 @@ export const requestRefund = mutation({
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .unique();
 
-    if (!credit || credit.balance < pledge.amount) {
+    if (!credit || credit.balance < refundable) {
       throw new Error("Insufficient store credit for refund");
     }
 
-    await ctx.db.patch(credit._id, { balance: credit.balance - pledge.amount });
+    await ctx.db.patch(credit._id, { balance: credit.balance - refundable });
 
-    // In real scenario, initiate refund through payment processor.
+    // In real scenario, initiate bulk refund through payment processor.
 
     return "refund_requested";
   },
