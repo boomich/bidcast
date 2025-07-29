@@ -19,6 +19,7 @@ import CompleteOnboardingButton from "./_CompleteOnboarding";
 
 import OtherChannels from "./_OtherChannels";
 import ConnectYouTubeChannelButton from "./_ConnectYouTubeChannelButton";
+import { completeOnboarding } from "./_actions";
 
 export default async function OnboardingPage() {
   const user = await currentUser();
@@ -53,6 +54,12 @@ export default async function OnboardingPage() {
 
   await fetchMutation(api.users.storeUser, {}, { token: convexToken });
 
+  // If user has no YouTube channels, complete onboarding and redirect to feed
+  if (!OauthChannel) {
+    await completeOnboarding();
+    redirect("/feed");
+  }
+
   // Only create channel if user has YouTube channels
   if (OauthChannel) {
     await fetchMutation(
@@ -82,91 +89,56 @@ export default async function OnboardingPage() {
           subtitleClassName="text-4xl md:text-5xl text-center"
         />
 
-        {OauthChannel ? (
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex flex-col gap-4">
-              <h2 className="text-2xl justify-center font-bold flex items-baseline gap-2">
-                Your active YouTube channel
-              </h2>
-              <Card className="p-4 gap-4 bg-card border-border hover:border-primary/20 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="relative w-[120px] h-[120px] rounded-full overflow-hidden bg-muted">
-                    <Image
-                      src={OauthChannel.snippet.thumbnails.medium.url}
-                      alt={OauthChannel.snippet.title}
-                      fill
-                      className="object-cover"
-                    />
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl justify-center font-bold flex items-baseline gap-2">
+              Your active YouTube channel
+            </h2>
+            <Card className="p-4 gap-4 bg-card border-border hover:border-primary/20 transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="relative w-[120px] h-[120px] rounded-full overflow-hidden bg-muted">
+                  <Image
+                    src={OauthChannel.snippet.thumbnails.medium.url}
+                    alt={OauthChannel.snippet.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col flex-1 gap-2">
+                  <h4 className="font-inter leading-tight text-secondary text-2xl">
+                    {OauthChannel.snippet.title}
+                  </h4>
+                  <div className="flex justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {OauthChannel.snippet.customUrl}
+                    </p>
                   </div>
-                  <div className="flex flex-col flex-1 gap-2">
-                    <h4 className="font-inter leading-tight text-secondary text-2xl">
-                      {OauthChannel.snippet.title}
-                    </h4>
-                    <div className="flex justify-between gap-2">
-                      <p className="text-sm text-muted-foreground">
-                        {OauthChannel.snippet.customUrl}
-                      </p>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <p className="text-sm text-muted-foreground">
-                        {OauthChannel.statistics.videoCount} videos •{" "}
-                        {OauthChannel.statistics.subscriberCount} subscribers •{" "}
-                        {OauthChannel.statistics.viewCount} views
-                      </p>
-                    </div>
+                  <div className="flex justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      {OauthChannel.statistics.videoCount} videos •{" "}
+                      {OauthChannel.statistics.subscriberCount} subscribers •{" "}
+                      {OauthChannel.statistics.viewCount} views
+                    </p>
                   </div>
                 </div>
-                <hr className="mb-2" />
-                <div className="flex flex-col justify-between gap-2">
-                  <ConnectYouTubeChannelButton asChild>
-                    <BidcastButton>Add another channel</BidcastButton>
-                  </ConnectYouTubeChannelButton>
-                  <CompleteOnboardingButton />
-                </div>
-              </Card>
-            </div>
-
-            <Separator
-              orientation="horizontal"
-              className="block md:hidden my-4"
-            />
-
-            <OtherChannels except={OauthChannel.id} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4 max-w-2xl">
-            <Card className="p-8 gap-6 bg-card border-border">
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Youtube className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-bold">No YouTube Channel Found</h2>
-                  <p className="text-muted-foreground">
-                    It looks like your Google account doesn't have any YouTube channels associated with it. 
-                    To use Bidcast, you'll need to create a YouTube channel first.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-3 w-full max-w-sm">
-                  <ConnectYouTubeChannelButton asChild>
-                    <BidcastButton className="w-full">
-                      Connect YouTube Channel
-                    </BidcastButton>
-                  </ConnectYouTubeChannelButton>
-                  <CompleteOnboardingButton />
-                  <a 
-                    href="https://support.google.com/youtube/answer/1646861?hl=en" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    How to create a YouTube channel →
-                  </a>
-                </div>
+              </div>
+              <hr className="mb-2" />
+              <div className="flex flex-col justify-between gap-2">
+                <ConnectYouTubeChannelButton asChild>
+                  <BidcastButton>Add another channel</BidcastButton>
+                </ConnectYouTubeChannelButton>
+                <CompleteOnboardingButton />
               </div>
             </Card>
           </div>
-        )}
+
+          <Separator
+            orientation="horizontal"
+            className="block md:hidden my-4"
+          />
+
+          <OtherChannels except={OauthChannel.id} />
+        </div>
         {/* <div className="text-sm max-w-3xl border-2 text-secondary">
           <pre className="flex flex-col gap-2">
             <span className="text-sm flex-wrap wrap-anywhere whitespace-break-spaces text-secondary">
