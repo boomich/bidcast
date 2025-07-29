@@ -6,15 +6,10 @@ import { Navigation } from "@/components/layout";
 import { PageHeader, SearchFilters, CampaignCard } from "@/components/ui";
 import { useCampaigns } from "@/hooks";
 import { CampaignFilters } from "@/types";
+import { SimpleFooterWithFourGrids } from "@/components/blocks/footers/simple-footer-with-four-grids";
 
 export default function FeedPage() {
-  const {
-    campaigns,
-    loading,
-    error,
-    filters,
-    setFilters,
-  } = useCampaigns();
+  const { campaigns, loading, error, filters, setFilters } = useCampaigns();
 
   const handleCreateCampaign = () => {
     // TODO: Implement campaign creation flow
@@ -40,9 +35,7 @@ export default function FeedPage() {
               Error Loading Campaigns
             </h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
           </div>
         </div>
       </div>
@@ -52,7 +45,7 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <PageHeader
         title="Campaign Feed"
         subtitle="Discover and back amazing projects"
@@ -61,7 +54,7 @@ export default function FeedPage() {
           onClick: handleCreateCampaign,
           icon: Plus,
         }}
-        sticky
+        // sticky
       />
 
       <div className="container mx-auto px-4 py-6">
@@ -74,8 +67,11 @@ export default function FeedPage() {
         {/* Results Summary */}
         <div className="mb-6">
           <p className="text-sm text-muted-foreground">
-            {loading ? "Loading campaigns..." : `Showing ${campaigns.length} campaigns`}
-            {filters.selectedCategory !== "All" && ` in ${filters.selectedCategory}`}
+            {loading
+              ? "Loading campaigns..."
+              : `Showing ${campaigns.length} campaigns`}
+            {filters.selectedCategory !== "All" &&
+              ` in ${filters.selectedCategory}`}
             {filters.searchQuery && ` matching "${filters.searchQuery}"`}
           </p>
         </div>
@@ -84,10 +80,7 @@ export default function FeedPage() {
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="animate-pulse"
-              >
+              <div key={index} className="animate-pulse">
                 <div className="bg-muted aspect-video rounded-t-lg" />
                 <div className="p-6 space-y-4">
                   <div className="h-4 bg-muted rounded w-3/4" />
@@ -129,25 +122,27 @@ export default function FeedPage() {
                   : "Be the first to create a campaign!"}
               </p>
               <div className="flex gap-2 justify-center">
-                {(filters.searchQuery || filters.selectedCategory !== "All") && (
+                {(filters.searchQuery ||
+                  filters.selectedCategory !== "All") && (
                   <Button
                     variant="outline"
-                    onClick={() => handleFiltersChange({
-                      searchQuery: "",
-                      selectedCategory: "All",
-                    })}
+                    onClick={() =>
+                      handleFiltersChange({
+                        searchQuery: "",
+                        selectedCategory: "All",
+                      })
+                    }
                   >
                     Clear filters
                   </Button>
                 )}
-                <Button onClick={handleCreateCampaign}>
-                  Create Campaign
-                </Button>
+                <Button onClick={handleCreateCampaign}>Create Campaign</Button>
               </div>
             </div>
           </div>
         )}
       </div>
+      <SimpleFooterWithFourGrids />
     </div>
   );
 }

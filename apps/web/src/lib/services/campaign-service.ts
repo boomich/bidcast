@@ -7,7 +7,8 @@ const mockCampaigns: Campaign[] = [
     title: "Summer Fashion Collection",
     creator: "Sarah Chen",
     description: "Sustainable fashion pieces for the modern wardrobe",
-    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop",
     fundingGoal: 50000,
     currentFunding: 32500,
     backers: 156,
@@ -22,7 +23,8 @@ const mockCampaigns: Campaign[] = [
     title: "Smart Home Automation Kit",
     creator: "TechFlow Labs",
     description: "Revolutionary IoT devices for seamless home control",
-    image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&h=600&fit=crop",
     fundingGoal: 75000,
     currentFunding: 58200,
     backers: 243,
@@ -37,7 +39,8 @@ const mockCampaigns: Campaign[] = [
     title: "Artisan Coffee Roastery",
     creator: "Mountain Peak Coffee",
     description: "Direct trade coffee beans from sustainable farms",
-    image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&h=600&fit=crop",
     fundingGoal: 25000,
     currentFunding: 18750,
     backers: 89,
@@ -52,7 +55,8 @@ const mockCampaigns: Campaign[] = [
     title: "Urban Vertical Garden System",
     creator: "GreenSpace Innovations",
     description: "Modular vertical gardens for apartment living",
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=600&fit=crop",
     fundingGoal: 40000,
     currentFunding: 35600,
     backers: 412,
@@ -67,7 +71,8 @@ const mockCampaigns: Campaign[] = [
     title: "AI-Powered Learning Platform",
     creator: "EduTech Solutions",
     description: "Personalized education through adaptive AI technology",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
     fundingGoal: 100000,
     currentFunding: 72400,
     backers: 328,
@@ -82,7 +87,8 @@ const mockCampaigns: Campaign[] = [
     title: "Eco-Friendly Packaging Solutions",
     creator: "Pure Pack",
     description: "Biodegradable packaging alternatives for businesses",
-    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop",
     fundingGoal: 60000,
     currentFunding: 60000,
     backers: 245,
@@ -97,20 +103,20 @@ const mockCampaigns: Campaign[] = [
 export class CampaignService {
   static async getCampaigns(filters?: CampaignFilters): Promise<Campaign[]> {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     let filteredCampaigns = [...mockCampaigns];
-    
+
     if (filters) {
       filteredCampaigns = this.filterCampaigns(filteredCampaigns, filters);
     }
-    
+
     return filteredCampaigns;
   }
 
   static async getCampaignById(id: string): Promise<Campaign | null> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return mockCampaigns.find(campaign => campaign.id === id) || null;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return mockCampaigns.find((campaign) => campaign.id === id) || null;
   }
 
   static async getCampaignStats(): Promise<{
@@ -119,11 +125,14 @@ export class CampaignService {
     totalFunding: number;
     averageFunding: number;
   }> {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const activeCampaigns = mockCampaigns.filter(c => c.status === "active");
-    const totalFunding = mockCampaigns.reduce((sum, c) => sum + c.currentFunding, 0);
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const activeCampaigns = mockCampaigns.filter((c) => c.status === "active");
+    const totalFunding = mockCampaigns.reduce(
+      (sum, c) => sum + c.currentFunding,
+      0,
+    );
+
     return {
       totalCampaigns: mockCampaigns.length,
       activeCampaigns: activeCampaigns.length,
@@ -132,7 +141,10 @@ export class CampaignService {
     };
   }
 
-  private static filterCampaigns(campaigns: Campaign[], filters: CampaignFilters): Campaign[] {
+  private static filterCampaigns(
+    campaigns: Campaign[],
+    filters: CampaignFilters,
+  ): Campaign[] {
     return campaigns.filter((campaign) => {
       // Search filter
       if (filters.searchQuery) {
@@ -141,7 +153,7 @@ export class CampaignService {
           campaign.title.toLowerCase().includes(searchLower) ||
           campaign.creator.toLowerCase().includes(searchLower) ||
           campaign.description.toLowerCase().includes(searchLower);
-        
+
         if (!matchesSearch) return false;
       }
 
@@ -151,11 +163,17 @@ export class CampaignService {
       }
 
       // Funding range filters
-      if (filters.minFunding !== undefined && campaign.fundingGoal < filters.minFunding) {
+      if (
+        filters.minFunding !== undefined &&
+        campaign.fundingGoal < filters.minFunding
+      ) {
         return false;
       }
-      
-      if (filters.maxFunding !== undefined && campaign.fundingGoal > filters.maxFunding) {
+
+      if (
+        filters.maxFunding !== undefined &&
+        campaign.fundingGoal > filters.maxFunding
+      ) {
         return false;
       }
 
@@ -168,37 +186,49 @@ export class CampaignService {
     });
   }
 
-  static async createCampaign(campaignData: Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>): Promise<Campaign> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+  static async createCampaign(
+    campaignData: Omit<Campaign, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Campaign> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     const newCampaign: Campaign = {
       ...campaignData,
       id: Math.random().toString(36).substring(2),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     // In a real app, this would be saved to the database
     mockCampaigns.push(newCampaign);
-    
+
     return newCampaign;
   }
 
-  static async updateCampaign(id: string, updates: Partial<Campaign>): Promise<Campaign | null> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const campaignIndex = mockCampaigns.findIndex(c => c.id === id);
+  static async updateCampaign(
+    id: string,
+    updates: Omit<Partial<Campaign>, "id">,
+  ): Promise<Campaign | null> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const campaignIndex = mockCampaigns.findIndex((c) => c.id === id);
     if (campaignIndex === -1) return null;
-    
-    const existingCampaign = mockCampaigns[campaignIndex];
+
+    const existingCampaign = mockCampaigns[campaignIndex]!; // Non-null assertion since we checked index exists
+
+    // Filter out undefined values to prevent overriding required fields
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined),
+    ) as Partial<Campaign>;
+
     const updatedCampaign: Campaign = {
       ...existingCampaign,
-      ...updates,
+      ...filteredUpdates,
+      id: existingCampaign.id, // Ensure id is always the existing id
       updatedAt: new Date(),
-    };
-    
+    } as Campaign;
+
     mockCampaigns[campaignIndex] = updatedCampaign;
-    
+
     return updatedCampaign;
   }
 }

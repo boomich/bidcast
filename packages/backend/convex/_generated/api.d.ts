@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as channels from "../channels.js";
+import type * as crowdfunding from "../crowdfunding.js";
 import type * as users from "../users.js";
 import type * as utils from "../utils.js";
 
@@ -27,6 +28,7 @@ import type * as utils from "../utils.js";
  */
 declare const fullApi: ApiFromModules<{
   channels: typeof channels;
+  crowdfunding: typeof crowdfunding;
   users: typeof users;
   utils: typeof utils;
 }>;
