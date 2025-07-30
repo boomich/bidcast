@@ -2,47 +2,69 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  Users: defineTable({
+  users: defineTable({
+    clerkId: v.string(),
     name: v.string(),
     tokenIdentifier: v.string(),
-  }).index("by_token", ["tokenIdentifier"]),
-
-  UserYoutubeChannels: defineTable({
-    clerkUserId: v.string(),
-    clerkExternalAccountId: v.string(),
-    channelId: v.string(),
-
-    channelTitle: v.string(),
-    channelUrl: v.string(),
-    channelThumbnail: v.string(),
+    onboarded: v.optional(v.boolean()),
+    roles: v.array(
+      v.union(v.literal("fan"), v.literal("creator"), v.literal("owner")),
+    ),
   })
-    .index("by_clerk_user_id", ["clerkUserId"])
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_clerk_user_id", ["clerkId"]),
+
+  fans: defineTable({
+    userId: v.id("users"),
+    favoriteChannels: v.optional(v.array(v.id("channels"))),
+  }).index("by_user_id", ["userId"]),
+
+  creators: defineTable({
+    userId: v.id("users"),
+    channels: v.optional(v.array(v.id("channels"))),
+  }).index("by_user_id", ["userId"]),
+
+  channels: defineTable({
+    bio: v.string(),
+    url: v.string(),
+    title: v.string(),
+    channelId: v.string(),
+    thumbnail: v.string(),
+    coverImage: v.string(),
+    creatorId: v.id("creators"),
+  })
+    .index("by_creator_id", ["creatorId"])
     .index("by_channel_id", ["channelId"]),
 
-  // Crowdfunding tables for Bidcast funding engine
-  Campaigns: defineTable({
-    creatorId: v.id("Users"),
+  campaigns: defineTable({
     title: v.string(),
-    description: v.string(),
-    goalAmount: v.number(),
     deadline: v.number(), // Unix epoch millis
+    goalAmount: v.number(),
+    description: v.string(),
     fundedAmount: v.number(),
-    status: v.string(), // "open" | "succeeded" | "failed"
-  }).index("by_creator", ["creatorId"]),
-
-  Pledges: defineTable({
-    userId: v.id("Users"),
-    campaignId: v.id("Campaigns"),
-    amount: v.number(),
-    createdAt: v.number(),
-    refunded: v.optional(v.boolean()),
-    eligibleForPerks: v.optional(v.boolean()),
+    creatorId: v.id("creators"),
+    channelId: v.id("channels"),
+    status: v.union(
+      v.literal("open"),
+      v.literal("succeeded"),
+      v.literal("failed"),
+    ),
   })
-    .index("by_campaign", ["campaignId"])
-    .index("by_user_campaign", ["userId", "campaignId"]),
+    .index("by_creator_id", ["creatorId"])
+    .index("by_channel_id", ["channelId"]),
 
-  UserCredits: defineTable({
-    userId: v.id("Users"),
+  bids: defineTable({
+    amount: v.number(),
+    userId: v.id("users"),
+    campaignId: v.id("campaigns"),
+    refunded: v.optional(v.boolean()),
+    recredited: v.optional(v.boolean()),
+  })
+    .index("by_campaign_id", ["campaignId"])
+    .index("by_user_id", ["userId"]),
+
+  wallet: defineTable({
     balance: v.number(),
-  }).index("by_userId", ["userId"]),
+    userId: v.id("users"),
+  }).index("by_user_id", ["userId"]),
 });
