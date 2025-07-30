@@ -67,7 +67,7 @@ export const getChannels = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated call to mutation");
 
-    const channels = await ctx.db.query("channels").fullTableScan();
+    const channels = await ctx.db.query("channels").collect();
     return channels;
   },
 });

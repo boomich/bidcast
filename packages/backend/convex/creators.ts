@@ -15,6 +15,9 @@ export const createCreator = mutation({
     if (existingCreator) return existingCreator;
 
     const creatorId = await ctx.db.insert("creators", { userId });
-    return creatorId;
+
+    // Return the full creator object instead of just the ID
+    const newCreator = await ctx.db.get(creatorId);
+    return newCreator;
   },
 });

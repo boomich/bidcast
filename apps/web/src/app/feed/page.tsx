@@ -1,15 +1,23 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui";
-import { Navigation } from "@/components/layout";
-import { PageHeader, SearchFilters, CampaignCard } from "@/components/ui";
+import { useQuery } from "convex/react";
+
+import Image from "next/image";
+
 import { useCampaigns } from "@/hooks";
+import { Button, Card } from "@/components/ui";
 import { CampaignFilters } from "@/types";
+import { Navigation } from "@/components/layout";
+import { api } from "@packages/backend/convex/_generated/api";
+import { PageHeader, SearchFilters, CampaignCard } from "@/components/ui";
 import { SimpleFooterWithFourGrids } from "@/components/blocks/footers/simple-footer-with-four-grids";
 
 export default function FeedPage() {
   const { campaigns, loading, error, filters, setFilters } = useCampaigns();
+
+  // Get other channels from database
+  const channels = useQuery(api.channels.getChannels);
 
   const handleCreateCampaign = () => {
     // TODO: Implement campaign creation flow
@@ -58,6 +66,25 @@ export default function FeedPage() {
       />
 
       <div className="container mx-auto px-4 py-6">
+        {channels?.map((channel) => (
+          <div
+            key={channel.channelId}
+            className="inline-flex cursor-pointer mb-4 p-4 flex-row items-center justify-center gap-4"
+          >
+            <Image
+              src={channel.thumbnail}
+              alt={channel.title}
+              width={50}
+              height={50}
+              className="rounded-full"
+            />
+            <div>
+              <p className="text-secondary font-medium">{channel.title}</p>
+              <p className="text-secondary font-satoshi">{channel.url}</p>
+            </div>
+          </div>
+        ))}
+
         <SearchFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}

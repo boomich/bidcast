@@ -49,7 +49,11 @@ export default async function YouTubeChannelCheck() {
   // Retrieve a Clerk-issued JWT with the "convex" template
   const convexToken = await getAuthToken();
 
-  await fetchMutation(api.users.storeUser, {}, { token: convexToken });
+  await fetchMutation(
+    api.users.createUser,
+    {},
+    // { token: convexToken }
+  );
 
   // If user has no YouTube channels, show continue flow
   if (!OauthChannel) {
